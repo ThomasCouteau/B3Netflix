@@ -1,0 +1,40 @@
+pipeline {
+    agent any
+    environment{
+        MEM_XMX = '-Xmx 1g'
+        MEM_XMS = '-Xmx 512m'
+    }
+    parameters{
+        choice(name: 'DEPLOY', choices: ['OUI', 'NON'], description: 'Deploiement apres compilation')
+    }
+    stages {
+        stage("Recuperation des sources"){
+            steps{
+               git url:'https://github.com/ProfesseurIssou/B3Netflix.git', branch:"main"
+            }
+        }
+
+        stage('Build') {
+            steps {
+                echo "Build avec config :"
+                echo "xms = ${MEM_XMS}  xmx  = ${MEM_XMX}"
+                bat """
+                mvn package
+                """
+                bat """
+                java -jar target/netflix-1.0.0.jar netflix_titles.csv
+                """
+            }
+        }
+        stage('Test') {
+            steps {
+                echo 'Test...'
+            }
+        }
+        stage('Deploy') {
+            steps {
+                echo "Deploy... : ${params.DEPLOY}"
+            }
+        }
+    }
+}
